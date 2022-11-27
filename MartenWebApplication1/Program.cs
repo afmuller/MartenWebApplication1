@@ -69,9 +69,21 @@ group.MapGet("/getallposts", async (IQuerySession session) =>
     return result;
 });
 
+group.MapGet("/getallfeaturedformusic", async (IQuerySession session) =>
+    {
+        // This query works as expected
+        IQueryable<Post> query = session.Query<Post>();
+
+        query = query.Where(p => p.Type.Equals("Featured") && p.Tags.Contains("music"));
+
+        var result = await query.ToListAsync();
+        return result;
+    })
+    .WithName("GetAllFeaturedPostsForMusic");
+
 group.MapGet("/getallfeaturedexceptmovies", async (IQuerySession session) =>
 {
-    // This query does NOT work as expected - it returns all results
+    // This query does NOT work as expected - the Type='Featured' filter seems to be ignored
     IQueryable<Post> query = session.Query<Post>();
 
     query = query.Where(p => !p.Tags.Contains("movies"));
@@ -82,21 +94,9 @@ group.MapGet("/getallfeaturedexceptmovies", async (IQuerySession session) =>
 })
     .WithName("GetAllFeaturedPostsExceptMovies");
 
-group.MapGet("/getallfeaturedformusic", async (IQuerySession session) =>
-    {
-        // This query does NOT work as expected - it returns all results
-        IQueryable<Post> query = session.Query<Post>();
-
-        query = query.Where(p =>  p.Type.Equals("Featured") && p.Tags.Contains("music"));
-
-        var result = await query.ToListAsync();
-        return result;
-    })
-    .WithName("GetAllFeaturedPostsForMusic");
-
 group.MapGet("/getallfeaturedexceptmusic", async (IQuerySession session) =>
     {
-        // This query does NOT work as expected - it returns all results
+        // This query does NOT work as expected - the Type='Featured' filter seems to be ignored
         IQueryable<Post> query = session.Query<Post>();
 
         query = query.Where(p => p.Type.Equals("Featured") && !p.Tags.Contains("music"));
@@ -118,7 +118,7 @@ group.MapGet("/getallfeaturedexceptmusicinsection1a", async (IQuerySession sessi
 
 group.MapGet("/getallfeaturedexceptmusicinsection1b", async (IQuerySession session) =>
     {
-        // This query does NOT work as expected - it returns all results - even though its basically exactly the same as 'getallfeaturedexceptmusicinsection1a' (only with the order switched around)
+        // This query does NOT work as expected -  - the Type='Featured' & Section filter seems to be ignored - even though its basically exactly the same as 'getallfeaturedexceptmusicinsection1a' (only with the order switched around)
         IQueryable<Post> query = session.Query<Post>();
         query = query.Where(p => p.Type.Equals("Featured") && p.Section.Equals("Section1") && !p.Tags.Contains("music"));
         var result = await query.ToListAsync();
@@ -128,7 +128,7 @@ group.MapGet("/getallfeaturedexceptmusicinsection1b", async (IQuerySession sessi
 
 group.MapGet("/getallfeaturedexceptmusicinsection1expression", async (IQuerySession session) =>
     {
-        // This query does NOT work as expected - it returns all results
+        // This query does NOT work as expected - the Type='Featured' filter seems to be ignored
         IQueryable<Post> query = session.Query<Post>();
 
         Expression<Func<Post, bool>>? filter = ExpressionHelpersExtensions.CreateCombinedAndLambda<Post>(
